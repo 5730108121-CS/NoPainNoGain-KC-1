@@ -14,9 +14,13 @@ public class SimpleBlock extends Block{
 	@Override
 	public void draw(Graphics2D g2d) {
 		// TODO Auto-generated method stub
+		Color color = Color.GRAY;
+		if(this.posessedBy != null) {
+			color = this.posessedBy.getColor();
+		}
 		g2d.setColor(Color.BLACK);
 		g2d.fillRect(getX()-2, getY()-2, width+4, height+4);
-		g2d.setColor(Color.GRAY);
+		g2d.setColor(color);
 		g2d.fillRect(getX(), getY(), width, height);
 	}
 

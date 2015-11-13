@@ -4,10 +4,10 @@ package logic;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import input.InputUtility;
-
-
+import render.Resource;
 
 public class Player implements Entity {
 	//direction
@@ -18,7 +18,9 @@ public class Player implements Entity {
 	
 	final static int Speed = 3;
 	final static int MaxDistance = 6;
+	final static int MaxHP = 500;
 	
+	private int hp;
 	private Point position;
 	
 	private int direction;
@@ -26,19 +28,23 @@ public class Player implements Entity {
 	
 	private static int size = 30;
 	private Color color;
+	private BufferedImage image;
 	
 	private int numStep;
 	private int countStep;
 	private boolean walking;
-	
+	private int indexWalking;
 	
 	private Block currentBlock;
 	
-	public Player(Block b){
+	
+	
+	public Player(Block b,BufferedImage image){
 		position = new Point(0,0);
 		this.currentBlock = b;
 		b.addPlayer(this);
 		
+		this.image = image;
 		direction = Player.DOWN;
 		
 		int red = (int)(Math.random()*256);
@@ -48,17 +54,18 @@ public class Player implements Entity {
 		
 		position.setX(this.currentBlock.getPosition().getX());
 		position.setY(this.currentBlock.getPosition().getY());
-
+		hp = MaxHP;
 	}
 
+	
 	@Override
 	public void draw(Graphics2D g2d) {
 		// TODO Auto-generated method stub
-		
-		g2d.setColor(color);
-		g2d.fillOval(getX()-size/2, getY()-size/2, size, size);
+		g2d.drawImage(image.getSubimage(((indexWalking/5)%3)*32, direction*32, 32, 32), null, getX()-size/2, getY()-size/2);
+
 	}
 
+	// update get attribute
 	@Override
 	public int getZ() {
 		// TODO Auto-generated method stub
@@ -89,7 +96,18 @@ public class Player implements Entity {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	public Color getColor(){
+		return color;
+	}
+	public void decreaseHp(int value){
+		hp -= value;
+		System.out.println(getHP());
+	}	
+	public double getHP(){
+		return (double)(hp) / MaxHP;
+	}
+	
+	// update each phase
 	@Override
 	public void updateStart() {
 		// TODO Auto-generated method stub
@@ -99,11 +117,11 @@ public class Player implements Entity {
 			GameLogic.nextPhase();
 		}
 	}
-
 	@Override
 	public void updateWalking() {
 		// TODO Auto-generated method stub
 		if(walking){
+			indexWalking++;
 			if(!finishX()){
 				stepX();
 			} 
@@ -140,7 +158,57 @@ public class Player implements Entity {
 		}
 		
 	}
-
+	@Override
+	public void updateBlockAction() {
+		// TODO Auto-generated method stub
+		if(currentBlock.posessedBy == null){
+			if(InputUtility.getKeyPressed(KeyEvent.VK_B)){
+				System.out.println("test");
+				currentBlock.posessedBy = this;
+				GameLogic.nextPhase();
+			}
+			if(InputUtility.getKeyPressed(KeyEvent.VK_E)){
+				GameLogic.nextPhase();
+			}
+		} else {
+			if(currentBlock.posessedBy.equals(this)){
+				
+			} else {
+				this.decreaseHp(50);
+				GameLogic.nextPhase();
+			}
+			
+		}
+	}
+	@Override
+	public void updateAction() {
+		// TODO Auto-generated method stub
+		try{
+			if(currentBlock.posessedBy.equals(this)){
+				GameLogic.nextPhase();
+			} else {
+				if(currentBlock instanceof SimpleBlock){
+					if(InputUtility.getKeyPressed(KeyEvent.VK_C)){
+						this.decreaseHp(50);
+						currentBlock.posessedBy = this;
+						GameLogic.nextPhase();
+					}
+				}
+			}
+			if(InputUtility.getKeyPressed(KeyEvent.VK_E)){
+				GameLogic.nextPhase();
+			}
+		} catch (NullPointerException e){
+			GameLogic.nextPhase(); 
+		}
+	}
+	@Override
+	public void updateEnd() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	// for update Walking
 	private void step(int direction){
 		Field.checkBlock(currentBlock.nextBlock[direction]);
 		currentBlock.removePlayer(this);
@@ -150,25 +218,6 @@ public class Player implements Entity {
 		currentBlock.addPlayer(this);
 		walking = true;
 	}
-	
-	@Override
-	public void updateBlockAction() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateAction() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void updateEnd() {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	private void stepX(){
 		int sign = destination.comparePositionX(this);
 		position.setX(position.getX() + sign*Speed);
@@ -179,7 +228,6 @@ public class Player implements Entity {
 			position.setX(destination.getX());
 		}
 	}
-	
 	private void stepY(){
 		int sign = destination.comparePositionY(this);
 		position.setY(position.getY() + sign*Speed);
@@ -189,15 +237,12 @@ public class Player implements Entity {
 			position.setY(destination.getY());
 		}
 	}
-	
 	private boolean finishX(){
 		return position.getX() == destination.getX();
 	}
-	
 	private boolean finishY(){
 		return position.getY() == destination.getY();
 	}
-	
 	private void endStep(){
 		countStep++;
 		walking = false;
@@ -206,54 +251,8 @@ public class Player implements Entity {
 			GameLogic.nextPhase();
 			countStep = 0;
 			numStep = 0;
+			indexWalking = 0; 
 		}
 	}
-	
-//	@Override
-//	public void update() {
-//		// TODO Auto-generated method stub
-//		updateRoll();
-//		updateWalking();
-//		checkEndTurn();
-//		super.update();
-//		
-//	}
-//	
-//	@Override
-//	protected void step(){
-//		if(currentBlock.getNextBlock().length > 0 && !choosedNext){
-//			
-//		} else {
-//			
-//		}
-//			
-//		if(choosedNext){
-//			this.currentBlock = currentBlock.getNextBlock()[indexOfNext];
-//		}
-//	}
-//	
-//	private void updateRoll(){
-//		if(ButtonUtility.isRoll() && (MainLogic.turn % 4 == index)){
-//			MainLogic.haveAction = true;
-//			ButtonUtility.setRoll(false);
-//			int numstep = (int) (Math.random()*6+1);
-//			this.numstep = numstep;
-//		}
-//	}
-//	
-//	public void walking(int step){
-//		this.numstep = step;
-//		MainLogic.haveAction = true;
-//	}
-//	
-//	private void checkEndTurn(){
-//		if((MainLogic.turn) % 4 == index && !inAction){
-//			MainLogic.haveAction = false;
-//		}
-//	}
-//	
-//	protected void endTurn(){
-//		MainLogic.turn ++;
-//		finishTurn = false;
-//	}
+
 }

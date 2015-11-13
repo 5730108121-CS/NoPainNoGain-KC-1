@@ -14,6 +14,7 @@ import javax.swing.JComponent;
 
 
 public class GameScreen extends JComponent{
+	
 	public GameScreen() {
 		// TODO Auto-generated constructor stub
 		super();

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import render.RenderableHolder;
+import render.Resource;
 
 public class GameLogic {
 	
@@ -36,11 +37,10 @@ public class GameLogic {
 		blocks =new ArrayList<>();
 		//makeMap
 		Block first = Field.getBlocks()[22];
-		for(int i=0;i<4;i++)
-		{
+		for(int i = 0;i<4;i++){
 			//playStatus[i]=new PlayStatus();
 			//RenderableHolder.getInstance().add(playStatus[i]);
-			player[i] = new Player(first);
+			player[i] = new Player(first,Resource.characterSprite.get(i));
 			RenderableHolder.getInstance().add(player[i]);
 		}
 		phase=PhaseStart;
@@ -71,7 +71,7 @@ public class GameLogic {
 		
 		else if(phase==PhaseBlockAction)
 		{
-			GameLogic.nextPhase();
+			now.updateBlockAction();
 //			if(now.endBlockAction())
 //			{
 //				phase+=1;
@@ -79,7 +79,7 @@ public class GameLogic {
 		}
 		else if(phase==PhaseAction)
 		{
-			GameLogic.nextPhase();
+			now.updateAction();
 //			if(now.endAciton())
 //			{
 //				phase+=1;
