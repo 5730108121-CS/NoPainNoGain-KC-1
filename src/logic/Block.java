@@ -2,7 +2,6 @@ package logic;
 
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +31,10 @@ public abstract class Block implements Entity{
 		
 		positionPlayer = new Point[4];
 		
-		int centerx = x + width/4;
 		int centery = y + height/4;
 		for(int i = 0 ; i<4 ; i++){
-			int positionx = centerx + (width * (i / 2))/2;
-			int positiony = centery + (height * (i % 2))/2;
+			int positionx = x + 7 + (width/4)*(i);
+			int positiony = centery + (height)/2 - 5;
 			positionPlayer[i] = new Point(positionx,positiony);
 		}
 	}
@@ -44,7 +42,10 @@ public abstract class Block implements Entity{
 	@Override
 	public int getZ() {
 		// TODO Auto-generated method stub
-		return 1;
+		return z;
+	}
+	public void setZ(int value){
+		this.z = value;
 	}
 	@Override
 	public boolean isVisible() {
@@ -83,6 +84,10 @@ public abstract class Block implements Entity{
 	public Point getPosition(){
 		return positionPlayer[indexOfPosition()];
 	}	
+	
+	public int getZFromBlock(){
+		return indexOfPosition();
+	}
 	
 	private int indexOfPosition(){
 		for(int i = 0;i<4;i++){

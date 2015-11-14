@@ -10,6 +10,7 @@ import input.InputUtility;
 import render.Resource;
 
 public class Player implements Entity {
+	private int phase;
 	//direction
 	final static int DOWN = 0;
 	final static int LEFT = 1;
@@ -22,7 +23,7 @@ public class Player implements Entity {
 	
 	private int hp;
 	private Point position;
-	
+	private int z;
 	private int direction;
 	private Point destination;
 	
@@ -37,9 +38,7 @@ public class Player implements Entity {
 	
 	private Block currentBlock;
 	
-	
-	
-	public Player(Block b,BufferedImage image){
+	public Player(Block b,BufferedImage image,Color color){
 		position = new Point(0,0);
 		this.currentBlock = b;
 		b.addPlayer(this);
@@ -47,29 +46,36 @@ public class Player implements Entity {
 		this.image = image;
 		direction = Player.DOWN;
 		
-		int red = (int)(Math.random()*256);
-		int green = (int)(Math.random()*256);
-		int blue = (int)(Math.random()*256);
-		color = new Color(red,green,blue);
+		this.color = color;
 		
 		position.setX(this.currentBlock.getPosition().getX());
 		position.setY(this.currentBlock.getPosition().getY());
+		setZ(this.currentBlock.getZFromBlock());
 		hp = MaxHP;
 	}
-
+	
+	public int getNumStep(){
+		return numStep - countStep;
+	}
 	
 	@Override
 	public void draw(Graphics2D g2d) {
 		// TODO Auto-generated method stub
+		int direction = Player.DOWN;
+		if(phase == GameLogic.PhaseWalking){
+			direction = this.direction;
+		}
 		g2d.drawImage(image.getSubimage(((indexWalking/5)%3)*32, direction*32, 32, 32), null, getX()-size/2, getY()-size/2);
-
 	}
-
+	
 	// update get attribute
 	@Override
 	public int getZ() {
 		// TODO Auto-generated method stub
-		return 3;
+		return z;
+	}
+	public void setZ(int value){
+		this.z = value;
 	}
 	@Override
 	public boolean isVisible() {
@@ -101,25 +107,26 @@ public class Player implements Entity {
 	}
 	public void decreaseHp(int value){
 		hp -= value;
-		System.out.println(getHP());
 	}	
-	public double getHP(){
-		return (double)(hp) / MaxHP;
+	public int getHP(){
+		return (hp * 100)/ MaxHP;
 	}
 	
 	// update each phase
 	@Override
 	public void updateStart() {
 		// TODO Auto-generated method stub
+		this.phase = GameLogic.PhaseStart;
 		if(InputUtility.getKeyPressed(KeyEvent.VK_SPACE)){
 			this.numStep = (int) (Math.random()*6+1);
-			System.out.println(numStep);
 			GameLogic.nextPhase();
 		}
 	}
 	@Override
 	public void updateWalking() {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub.
+		
+		this.phase = GameLogic.PhaseWalking;
 		if(walking){
 			indexWalking++;
 			if(!finishX()){
@@ -153,17 +160,16 @@ public class Player implements Entity {
 						step(DOWN);					
 					}
 				}
-			} catch (NullPointerException e){ 
-			}
+			} catch (NullPointerException e){}
 		}
 		
 	}
 	@Override
 	public void updateBlockAction() {
 		// TODO Auto-generated method stub
+		this.phase = GameLogic.PhaseBlockAction;
 		if(currentBlock.posessedBy == null){
 			if(InputUtility.getKeyPressed(KeyEvent.VK_B)){
-				System.out.println("test");
 				currentBlock.posessedBy = this;
 				GameLogic.nextPhase();
 			}
@@ -175,14 +181,14 @@ public class Player implements Entity {
 				
 			} else {
 				this.decreaseHp(50);
-				GameLogic.nextPhase();
 			}
-			
+			GameLogic.nextPhase();
 		}
 	}
 	@Override
 	public void updateAction() {
 		// TODO Auto-generated method stub
+		this.phase = GameLogic.PhaseAction;
 		try{
 			if(currentBlock.posessedBy.equals(this)){
 				GameLogic.nextPhase();
@@ -205,7 +211,7 @@ public class Player implements Entity {
 	@Override
 	public void updateEnd() {
 		// TODO Auto-generated method stub
-		
+		this.phase = GameLogic.PhaseEnd;
 	}
 	
 	// for update Walking
@@ -215,8 +221,10 @@ public class Player implements Entity {
 		currentBlock = currentBlock.nextBlock[direction];
 		this.direction = direction;
 		destination = currentBlock.getPosition();
+		this.setZ(currentBlock.getZFromBlock());
 		currentBlock.addPlayer(this);
 		walking = true;
+		countStep++;
 	}
 	private void stepX(){
 		int sign = destination.comparePositionX(this);
@@ -244,10 +252,9 @@ public class Player implements Entity {
 		return position.getY() == destination.getY();
 	}
 	private void endStep(){
-		countStep++;
 		walking = false;
 		destination = null;
-		if(countStep == numStep){ 
+		if(countStep >= numStep){ 
 			GameLogic.nextPhase();
 			countStep = 0;
 			numStep = 0;

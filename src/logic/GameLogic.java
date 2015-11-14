@@ -2,27 +2,51 @@ package logic;
 
 
 
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import render.GameScreen;
 import render.RenderableHolder;
 import render.Resource;
 
 public class GameLogic {
+	private static final int[][] image = {
+			{3,0},
+			{2,7},
+			{1,5},
+			{0,3}
+	};
+	private static Player[] player;
+	private static List<Block> blocks;
 	
-	//private PlayStatus[] playStatus;
-	private Player[] player;
-	private List<Block> blocks;
+	private PlayerStatus[] playerStatus;
 	
-	private int ticCouter,z,index;
-	private static int phase;
+	private int ticCouter,z;
+	private static int index, phase;
 	static int PhaseStart=0,
 			PhaseWalking=1,
 			PhaseBlockAction=2,
 			PhaseAction=3,
 			PhaseEnd=4;
+	
+	private static Color[] playercolor = {Color.RED,Color.BLUE,Color.GREEN,Color.YELLOW};
+	
+	static int PlaystatusHeight=150;
+	static int PlaystatusWidth=200;
+	static Point[] position=new Point[]{
+		new Point(0,0),
+		new Point(0,GameScreen.HEIGHT - PlaystatusHeight),
+		new Point(GameScreen.WIDTH-PlaystatusWidth,0),
+		new Point(GameScreen.WIDTH-PlaystatusWidth,GameScreen.HEIGHT - PlaystatusHeight)
+	};
+	
+	
 	public GameLogic() {
 		// TODO Auto-generated constructor stub
+		playerStatus=new PlayerStatus[4];
 		blocks = new ArrayList<Block>();
 			for(Block block : Field.getBlocks()){
 				try{
@@ -31,17 +55,24 @@ public class GameLogic {
 					blocks.add(block);
 				} catch (NullPointerException e){}
 			}
-		
 		//dfdfdd
+			
 		player = new Player[4];
-		blocks =new ArrayList<>();
 		//makeMap
 		Block first = Field.getBlocks()[22];
 		for(int i = 0;i<4;i++){
-			//playStatus[i]=new PlayStatus();
-			//RenderableHolder.getInstance().add(playStatus[i]);
-			player[i] = new Player(first,Resource.characterSprite.get(i));
+			
+			BufferedImage playerImage = Resource.characterSprite.get(image[i][0]).getSubimage
+					(96*(image[i][1]%4), 128*(image[i][1]/4), 96, 128);
+			
+			player[i] = new Player(first,playerImage,playercolor[i]);
 			RenderableHolder.getInstance().add(player[i]);
+			
+			BufferedImage staturPlayerImage = Resource.faceSprite.get(image[i][0]).getSubimage
+					(96*(image[i][1]%4), 96*(image[i][1]/4), 96, 96);
+			
+			playerStatus[i]=new PlayerStatus(position[i],PlaystatusHeight,PlaystatusWidth,playercolor[i],staturPlayerImage,player[i]);
+			RenderableHolder.getInstance().add(playerStatus[i]);
 		}
 		phase=PhaseStart;
 		index=0;
@@ -91,7 +122,7 @@ public class GameLogic {
 			if(index == 4){
 				index = 0;
 			}
-			GameLogic.nextPhase();
+			nextPhase();
 //			if(endEnd())
 //			{
 //				phase=0;

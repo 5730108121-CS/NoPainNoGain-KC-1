@@ -11,16 +11,17 @@ public class Field {
 	public static int[][] field;
 			
 	public Field(int length){	
-		int[][] field = {{0,0,0,0,0,0,0,0,0,0},
-				{0,0,0,0,0,0,0,0,0,0},
-				{0,0,1,1,1,1,1,1,0,0},
+		int[][] field = {
+				{1,1,1,1,0,0,0,0,0,0},
+				{1,0,0,1,0,0,0,0,0,0},
+				{1,0,1,1,1,1,1,1,0,0},
+				{1,1,1,0,0,0,0,1,0,0},
 				{0,0,1,0,0,0,0,1,0,0},
 				{0,0,1,0,0,0,0,1,0,0},
 				{0,0,1,0,0,0,0,1,0,0},
-				{0,0,1,0,0,0,0,1,0,0},
-				{0,0,1,1,1,1,1,1,0,0},
-				{0,0,0,0,0,0,0,0,0,0},
-				{0,0,0,0,0,0,0,0,0,0}};
+				{0,0,1,1,1,1,1,1,1,0},
+				{0,0,0,0,0,0,1,0,1,0},
+				{0,0,0,0,0,0,1,1,1,0}};
 		this.field = field;
 		createField(length);
 		setNextBlock();
@@ -32,10 +33,19 @@ public class Field {
 	
 	public static void createField(int length){
 		blocks = new Block[length];
-		for(int x=0; x<= field[0].length; x++){
-			for(int y=0; y<= field.length; y++){
+		for(int x=0; x< field[0].length; x++){
+			for(int y=0; y< field.length; y++){
 				if(getTerrain(x,y) == 1){
-					blocks[x+y*10] = new SimpleBlock(100*x, 100*y, 100, 100);
+					blocks[x+y*10] = new SimpleBlock(75*x+280, 75*y+75, 75, 75);
+					
+				}
+				if(getTerrain(x,y) == 2){
+					blocks[x+y*10] = new CannonBlock(75*x+280, 75*y+75, 75, 75);
+				}
+				try{
+					blocks[x+y*10].setZ(y-10);
+				} catch (NullPointerException e){
+					System.out.println("Blank Block");
 				}
 			}
 		}
